@@ -22,6 +22,10 @@ caracteristicas = df[
     ["duracion_segundos", "popularidad_artista", "año_lanzamiento", "genero", "popularidad_cancion", "danceability", "tempo", "energy", "valencia", "loudness"]
 ]
 
+print("\nGÉNEROS:")
+for genero in df["genero"]:
+    print(genero)
+
 from sklearn.preprocessing import MultiLabelBinarizer
 
 generos = df["genero"].str.split(",")
@@ -65,7 +69,15 @@ similitud = cosine_similarity(caracteristicas_escaladas)
 
 def recomendar(cancion, cantidad=5):
 
-    indice = df[df["titulo"] == cancion].index[0]
+    resultado = df[
+        df["titulo"].str.strip().str.lower() == cancion.strip().lower()
+    ]
+
+    if resultado.empty:
+        print(f"❌ No encontré la canción: {cancion}")
+        return
+
+    indice = resultado.index[0]
 
     canciones_similares = list(enumerate(similitud[indice]))
 
@@ -74,7 +86,11 @@ def recomendar(cancion, cantidad=5):
         reverse=True
     )
 
-    recomendaciones = canciones_similares[1:cantidad + 1]
+    recomendaciones = [
+        (indice, puntuacion)
+        for indice, puntuacion in canciones_similares[1:]
+        if puntuacion >= 0.30
+    ][:cantidad]
 
     for indice, puntuacion in recomendaciones:
         print(
@@ -86,4 +102,16 @@ def recomendar(cancion, cantidad=5):
         )
 
 
-recomendar("Love In A Bottle")
+canciones_prueba = [
+    "Duvet",
+    "This Hurts",
+    "KARMA",
+    "Ma Chérie",
+    "Good Luck, Babe!",
+    "All You Wanna Do"
+]
+
+for cancion in canciones_prueba:
+    print("\n" + "=" * 40)
+    print("🎵", cancion)
+    recomendar(cancion)
