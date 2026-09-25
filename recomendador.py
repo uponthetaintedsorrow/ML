@@ -19,7 +19,7 @@ df = pd.read_sql(consulta, conexion)
 conexion.close()
 
 caracteristicas = df[
-    ["duracion_segundos", "popularidad_artista", "año_lanzamiento", "genero", "popularidad_cancion", "danceability", "tempo", "energia", "valence", "loudness"]
+    ["duracion_segundos", "popularidad_artista", "año_lanzamiento", "genero", "popularidad_cancion", "danceability", "tempo", "energy", "valencia", "loudness"]
 ]
 
 from sklearn.preprocessing import MultiLabelBinarizer
@@ -31,7 +31,7 @@ mlb = MultiLabelBinarizer()
 generos_codificados = mlb.fit_transform(generos)
 
 numericas = df[
-    ["duracion_segundos", "popularidad_artista", "año_lanzamiento", "popularidad_cancion", "danceability", "tempo", "energia", "valence", "loudness"]
+    ["duracion_segundos", "popularidad_artista", "año_lanzamiento", "popularidad_cancion", "danceability", "tempo", "energy", "valencia", "loudness"]
 ]
 
 escalador = StandardScaler()
@@ -86,4 +86,4 @@ def recomendar(cancion, cantidad=5):
         )
 
 
-recomendar("This Hurts")
+recomendar("Love In A Bottle")
