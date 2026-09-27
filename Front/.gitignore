@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-ssr
+*.local
+.vite
+
+# Python (backend intacto, solo se ignoran entornos/entornados locales)
+.venv/
+__pycache__/
+*.pyc
+.env
+.DS_Store

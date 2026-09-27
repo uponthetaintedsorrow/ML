@@ -1,0 +1,368 @@
+/* Estructura general: app, cabecera, menu de perfil, avatar y pie. */
+
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: var(--space-4);
+  z-index: calc(var(--z-header) + 1);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+  border-radius: var(--radius-pill);
+  transition: top var(--dur-fast) var(--ease);
+}
+
+.skip-link:focus {
+  top: var(--space-3);
+}
+
+.app__main:focus {
+  outline: none;
+}
+
+/* ------------------------------------------------------------- Cabecera */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  background: var(--header-bg);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header__inner {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  height: var(--header-height);
+  padding: 0 var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.header__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.header__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-sm);
+  font-weight: 550;
+  color: var(--color-text-soft);
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.header__link:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.header__link.is-active {
+  background: var(--color-primary-soft);
+  color: var(--color-text);
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ---------------------------------------------------------------- Marca */
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+.brand:hover {
+  opacity: 0.85;
+}
+
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+  box-shadow: var(--shadow-sm);
+}
+
+.brand--sm .brand__mark {
+  width: 32px;
+  height: 32px;
+}
+
+.brand__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.05;
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.14em;
+}
+
+.brand--sm .brand__text {
+  font-size: var(--fs-xs);
+}
+
+.brand__name--accent {
+  color: var(--color-secondary);
+}
+
+/* -------------------------------------------------------------- Avatar */
+
+.avatar {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: var(--avatar-size, 40px);
+  height: var(--avatar-size, 40px);
+  flex: 0 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.avatar__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar__fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  /* Degradado sobre el color primario (no sobre la superficie) para que las
+     iniciales tengan contraste tanto en el tema oscuro como en el claro. */
+  background: linear-gradient(
+    140deg,
+    var(--color-primary) 0%,
+    color-mix(in srgb, var(--color-primary) 62%, #000000) 100%
+  );
+  color: var(--color-primary-contrast);
+}
+
+.avatar__initials {
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  font-size: calc(var(--avatar-size, 40px) * 0.38);
+}
+
+/* ----------------------------------------------------- Menu de perfil */
+
+.profile-trigger {
+  position: relative;
+}
+
+.profile-trigger__button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+
+.profile-trigger__button:hover {
+  background: var(--color-surface-2);
+  border-color: var(--color-border-strong);
+}
+
+.profile-trigger__name {
+  font-size: var(--fs-sm);
+  font-weight: 550;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-trigger__caret {
+  color: var(--color-text-muted);
+  transition: transform var(--dur-fast) var(--ease);
+}
+
+.profile-trigger__caret.is-open {
+  transform: rotate(180deg);
+}
+
+.menu-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-menu);
+  background: transparent;
+  border: none;
+  cursor: default;
+}
+
+.profile-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: calc(var(--z-menu) + 1);
+  width: 254px;
+  padding: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: menu-in var(--dur) var(--ease);
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-menu__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.profile-menu__identity {
+  min-width: 0;
+}
+
+.profile-menu__name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-menu__since {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.profile-menu__list {
+  padding: var(--space-2) 0;
+}
+
+.profile-menu__footer {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.profile-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-md);
+  color: var(--color-text-soft);
+  text-align: left;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.profile-menu__item:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.profile-menu__item--danger {
+  color: var(--color-danger);
+}
+
+.profile-menu__item--danger:hover {
+  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
+  color: var(--color-danger);
+}
+
+/* ------------------------------------------------------- Pie de pagina */
+
+.footer {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-background-alt);
+}
+
+.footer__inner {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+}
+
+.footer__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  font-size: var(--fs-sm);
+  color: var(--color-text-soft);
+}
+
+.footer__note {
+  font-size: var(--fs-sm);
+}
+
+@media (max-width: 640px) {
+  .header__inner {
+    padding: 0 var(--space-4);
+    gap: var(--space-2);
+  }
+
+  .header__nav {
+    display: none;
+  }
+
+  .profile-trigger__name {
+    display: none;
+  }
+
+  .profile-menu {
+    position: fixed;
+    top: calc(var(--header-height) + 6px);
+    right: var(--space-3);
+    left: var(--space-3);
+    width: auto;
+  }
+
+  .brand__text {
+    display: none;
+  }
+}

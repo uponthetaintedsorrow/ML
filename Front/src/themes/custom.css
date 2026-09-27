@@ -1,0 +1,46 @@
+/*
+ * Tema personalizado.
+ * Los valores por defecto son variables "de entrada": el usuario puede
+ * sobrescribir --color-primary, --color-background, --color-surface,
+ * --color-text y --color-secondary desde Ajustes (se aplican como estilos
+ * inline en <html>, que tienen prioridad sobre este archivo).
+ * Todo lo demas se deriva de esas cinco variables con color-mix(),
+ * por lo que los componentes nunca necesitan saber de donde sale el color.
+ */
+
+[data-theme="custom"] {
+  --color-primary: #732248;
+  --color-background: #1a141d;
+  --color-surface: #221a27;
+  --color-text: #f5eef4;
+  --color-secondary: #d5b979;
+
+  /* Derivados */
+  --color-primary-strong: color-mix(in srgb, var(--color-primary) 85%, var(--color-text) 15%);
+  --color-primary-soft: color-mix(in srgb, var(--color-primary) 28%, transparent);
+  --color-primary-contrast: var(--color-text);
+
+  --color-background-alt: color-mix(in srgb, var(--color-background) 88%, var(--color-text) 12%);
+  --color-surface-2: color-mix(in srgb, var(--color-surface) 88%, var(--color-text) 12%);
+  --color-surface-3: color-mix(in srgb, var(--color-surface) 78%, var(--color-text) 22%);
+
+  --color-text-soft: color-mix(in srgb, var(--color-text) 82%, var(--color-background) 18%);
+  --color-text-muted: color-mix(in srgb, var(--color-text) 62%, var(--color-background) 38%);
+
+  --color-secondary-soft: color-mix(in srgb, var(--color-secondary) 18%, transparent);
+
+  --color-border: color-mix(in srgb, var(--color-text) 14%, transparent);
+  --color-border-strong: color-mix(in srgb, var(--color-text) 26%, transparent);
+
+  --color-success: color-mix(in srgb, #5fbf8f 80%, var(--color-text) 20%);
+  --color-danger: color-mix(in srgb, #e0685f 85%, var(--color-text) 15%);
+  --color-warning: color-mix(in srgb, #e0a95f 85%, var(--color-text) 15%);
+
+  --shadow-sm: 0 1px 2px color-mix(in srgb, var(--color-background) 70%, transparent);
+  --shadow-md: 0 12px 30px color-mix(in srgb, var(--color-background) 78%, transparent);
+  --shadow-lg: 0 26px 60px color-mix(in srgb, var(--color-background) 84%, transparent);
+
+  --header-bg: color-mix(in srgb, var(--color-background) 84%, transparent);
+  --cover-text: #ffffff;
+  color-scheme: light dark;
+}

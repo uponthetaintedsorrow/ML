@@ -1,0 +1,40 @@
+/*
+ * Tema claro.
+ * Paleta base: #FDFBF4 (fondo) con #D5B979 (secundario).
+ * Mantiene la misma identidad visual que el tema oscuro.
+ */
+
+[data-theme="light"] {
+  --color-primary: #732248;
+  --color-primary-strong: #5b1a37;
+  --color-primary-soft: rgba(115, 34, 72, 0.1);
+  --color-primary-contrast: #fdf7fb;
+
+  --color-background: #fdfbf4;
+  --color-background-alt: #f4efe4;
+  --color-surface: #ffffff;
+  --color-surface-2: #f7f2e9;
+  --color-surface-3: #efe7d9;
+
+  --color-text: #241a26;
+  --color-text-soft: #4a3d4c;
+  --color-text-muted: #6f6373;
+
+  --color-secondary: #a8813a;
+  --color-secondary-soft: rgba(168, 129, 58, 0.14);
+
+  --color-border: rgba(36, 26, 38, 0.12);
+  --color-border-strong: rgba(36, 26, 38, 0.24);
+
+  --color-success: #2f7d5b;
+  --color-danger: #b23b33;
+  --color-warning: #a9722a;
+
+  --shadow-sm: 0 1px 2px rgba(60, 44, 24, 0.08);
+  --shadow-md: 0 12px 28px rgba(60, 44, 24, 0.12);
+  --shadow-lg: 0 24px 56px rgba(60, 44, 24, 0.16);
+
+  --header-bg: rgba(253, 251, 244, 0.86);
+  --cover-text: rgba(255, 255, 255, 0.92);
+  color-scheme: light;
+}

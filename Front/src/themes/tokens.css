@@ -1,0 +1,52 @@
+/*
+ * Tokens compartidos por los tres temas.
+ * Aqui SOLO viven variables que no dependen del color: formas, sombras,
+ * radios, transiciones y medidas de la interfaz.
+ * Los colores viven en dark.css / light.css / custom.css.
+ */
+
+:root {
+  /* Marca */
+  --brand-mark: "MUSICA EPICA";
+
+  /* Forma */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+  --radius-pill: 999px;
+
+  /* Tipografia */
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-md: 0.9375rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.5rem;
+  --fs-2xl: 2rem;
+  --fs-3xl: 2.75rem;
+
+  /* Espaciado */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Capas */
+  --z-header: 40;
+  --z-menu: 60;
+  --z-overlay: 80;
+
+  /* Movimiento */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-fast: 140ms;
+  --dur: 240ms;
+
+  /* Anchos de layout */
+  --header-height: 68px;
+  --content-max: 1180px;
+}
