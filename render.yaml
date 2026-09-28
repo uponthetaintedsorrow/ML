@@ -1,0 +1,60 @@
+# Despliegue de la API de MUSICA EPICA en Render (un clic desde el panel).
+#
+# 1. Sube el repositorio a GitHub/GitLab.
+# 2. En Render: New -> Blueprint -> apunta a este repositorio.
+#    Render detectara este archivo y creara el servicio.
+# 3. Anade las variables de entorno que faltan (Render no lee .env):
+#      MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE
+#      FRONTEND_URL  = la URL donde se publica el frontend (Netlify)
+#      CORS_ORIGINS / CORS_ORIGIN_REGEX  = origen del frontend
+#      Opcionales: APPLE_*, GOOGLE_*, SPOTIFY_*
+#
+# La imagen incluye el frontend ya construido, asi que la API tambien sirve la
+# web en su propio dominio (util para probar sin CORS).
+#
+# REQUISITO: MySQL debe ser accesible desde Render. Si tu MySQL esta solo en tu
+# ordenador, este servicio no tendra datos (ver README.md).
+
+services:
+  - type: web
+    name: musica-epica-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: API_HOST
+        value: "0.0.0.0"
+      - key: PORT
+        value: "8000"
+      - key: MYSQL_HOST
+        sync: false
+      - key: MYSQL_PORT
+        value: "3306"
+      - key: MYSQL_USER
+        sync: false
+      - key: MYSQL_PASSWORD
+        sync: false
+      - key: MYSQL_DATABASE
+        value: musica_epica
+      - key: FRONTEND_URL
+        sync: false
+      - key: CORS_ORIGINS
+        value: "http://localhost:5173,http://127.0.0.1:5173"
+      - key: CORS_ORIGIN_REGEX
+        sync: false
+      - key: SESSION_TTL_DIAS
+        value: "30"
+      # Sign in with Apple (opcional)
+      - key: APPLE_CLIENT_ID
+        sync: false
+      - key: APPLE_TEAM_ID
+        sync: false
+      - key: APPLE_KEY_ID
+        sync: false
+      - key: APPLE_PRIVATE_KEY
+        sync: false
+      - key: APPLE_REDIRECT_URI
+        sync: false

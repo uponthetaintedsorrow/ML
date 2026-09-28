@@ -1056,3 +1056,81 @@
     padding-right: var(--space-4);
   }
 }
+
+/* --- Acceso: formulario real + proveedores ------------------------------- */
+
+.login__tabs {
+  gap: var(--space-2);
+  padding: 3px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+}
+
+.login__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-sm);
+  font-weight: 550;
+  color: var(--color-text-soft);
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.login__tab.is-active {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+.login__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
+  color: var(--color-danger);
+  font-size: var(--fs-sm);
+}
+
+.login__tag {
+  margin-left: auto;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-secondary-soft);
+  color: var(--color-secondary);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+.login__ok {
+  margin-left: auto;
+  color: var(--color-success);
+}
+
+.login__divider {
+  position: relative;
+  height: 1px;
+  background: var(--color-border);
+  text-align: center;
+}
+
+.login__divider span {
+  position: relative;
+  top: -9px;
+  padding: 0 var(--space-3);
+  background: var(--color-surface);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.login__notice--info {
+  background: var(--color-secondary-soft);
+  color: var(--color-text-soft);
+}

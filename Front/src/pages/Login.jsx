@@ -1,50 +1,101 @@
-import { useState } from 'react'
-import { ArrowRight, Info, Mail, ShieldAlert } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { AlertCircle, ArrowRight, Check, LogIn, Mail, ShieldAlert, UserPlus } from 'lucide-react'
 import { usePreferences } from '../context/PreferencesContext.jsx'
 import { useUser } from '../context/UserContext.jsx'
-import { AppleMusicIcon, GoogleIcon, SpotifyIcon } from '../components/BrandIcons.jsx'
-
-const PROVIDERS = [
-  { id: 'google', label: 'login.withGoogle', icon: GoogleIcon },
-  { id: 'spotify', label: 'login.withSpotify', icon: SpotifyIcon },
-  { id: 'apple', label: 'login.withApple', icon: AppleMusicIcon },
-]
+import {
+  AuthError,
+  getAppleSignInUrl,
+  getProviders,
+  loginWithEmail,
+  readAppleReturn,
+  registerWithEmail,
+} from '../services/auth.js'
+import { AppleMusicIcon } from '../components/BrandIcons.jsx'
 
 /**
- * Pantalla de inicio de sesion.
+ * Pantalla de acceso.
  *
- * IMPORTANTE: aqui no hay autenticacion real. Al pulsar un proveedor se
- * informa de que la integracion sigue pendiente (nunca se simula un OAuth
- * falso) y se ofrece el modo demostracion, que crea una sesion local.
- * Cuando exista el servicio de autenticacion, se sustituye
- * UserContext.signInDemo por esa llamada y el resto de la interfaz no cambia.
+ * - Correo + contrasena: acceso real contra la API (registro o inicio de sesion).
+ * - Apple: redireccion al flujo real de "Sign in with Apple" (se habilita solo
+ *   si el backend tiene las credenciales).
+ * - Google y Spotify: los botones se muestran, pero avisan de que estan
+ *   pendientes de credenciales en lugar de fingir que funcionan.
+ * - Modo demostracion: acceso local, sin cuenta, para probar la app.
  */
 export function Login({ onSignedIn }) {
   const { t } = usePreferences()
-  const { signInDemo } = useUser()
-  const [showEmail, setShowEmail] = useState(false)
-  const [email, setEmail] = useState('')
-  const [pending, setPending] = useState(null)
+  const { signInDemo, adoptUser } = useUser()
 
-  const enterDemo = () => {
+  const [modo, setModo] = useState('login') // 'login' | 'registro'
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [displayName, setDisplayName] = useState('')
+  const [username, setUsername] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [error, setError] = useState(null)
+  const [pendiente, setPendiente] = useState(null)
+  const [proveedores, setProveedores] = useState({ email: true, apple: false, google: false, spotify: false })
+
+  // Estado real de los proveedores: no se ofrece lo que no esta configurado.
+  useEffect(() => {
+    let vivo = true
+    getProviders()
+      .then((estado) => vivo && setProveedores(estado))
+      .catch(() => vivo && setProveedores({ email: true, apple: false, google: false, spotify: false }))
+    return () => {
+      vivo = false
+    }
+  }, [])
+
+  // Regreso de Apple: el token viene en la query del hash.
+  useEffect(() => {
+    let vivo = true
+    readAppleReturn().then((resultado) => {
+      if (!vivo || !resultado.token) return
+      window.location.reload()
+    })
+    return () => {
+      vivo = false
+    }
+  }, [])
+
+  const entrar = async (event) => {
+    event.preventDefault()
+    setEnviando(true)
+    setError(null)
+    try {
+      const usuario =
+        modo === 'registro'
+          ? await registerWithEmail({ email, password, displayName, username })
+          : await loginWithEmail({ email, password })
+      if (usuario) {
+        adoptUser(usuario)
+        onSignedIn()
+      }
+    } catch (fallo) {
+      setError(fallo instanceof AuthError ? fallo.message : t('login.errorGeneric'))
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  const entrarConApple = async () => {
+    setError(null)
+    try {
+      window.location.href = await getAppleSignInUrl()
+    } catch (fallo) {
+      setError(fallo instanceof AuthError ? fallo.message : t('login.errorGeneric'))
+    }
+  }
+
+  const pendienteDe = (proveedor) => {
+    setError(null)
+    setPendiente(proveedor)
+  }
+
+  const demo = () => {
     signInDemo()
     onSignedIn()
-  }
-
-  const requestProvider = (provider) => {
-    setPending({ type: 'provider', id: provider.id })
-    setShowEmail(false)
-  }
-
-  const requestEmail = (event) => {
-    event.preventDefault()
-    setPending({ type: 'email', id: email.trim() })
-  }
-
-  const closePending = () => {
-    setPending(null)
-    setShowEmail(false)
-    setEmail('')
   }
 
   return (
@@ -58,92 +109,167 @@ export function Login({ onSignedIn }) {
           <p className="login__subtitle">{t('login.subtitle')}</p>
         </div>
 
+        {/* ------------------------------------------------- correo real */}
+        <form className="login__form stack stack--3" onSubmit={entrar} noValidate>
+          <div className="row row--wrap login__tabs" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={modo === 'login'}
+              className={`login__tab${modo === 'login' ? ' is-active' : ''}`}
+              onClick={() => {
+                setModo('login')
+                setError(null)
+              }}
+            >
+              <LogIn size={15} aria-hidden="true" />
+              {t('login.tabLogin')}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={modo === 'registro'}
+              className={`login__tab${modo === 'registro' ? ' is-active' : ''}`}
+              onClick={() => {
+                setModo('registro')
+                setError(null)
+              }}
+            >
+              <UserPlus size={15} aria-hidden="true" />
+              {t('login.tabRegister')}
+            </button>
+          </div>
+
+          {modo === 'registro' && (
+            <>
+              <div className="field">
+                <label className="field__label" htmlFor="auth-name">
+                  {t('profile.displayName')}
+                </label>
+                <input
+                  id="auth-name"
+                  className="input"
+                  value={displayName}
+                  autoComplete="name"
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Sam"
+                />
+              </div>
+              <div className="field">
+                <label className="field__label" htmlFor="auth-username">
+                  {t('profile.username')}
+                </label>
+                <input
+                  id="auth-username"
+                  className="input"
+                  value={username}
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck="false"
+                  onChange={(e) => setUsername(e.target.value.toLowerCase())}
+                  placeholder="sam_rivers"
+                />
+              </div>
+            </>
+          )}
+
+          <div className="field">
+            <label className="field__label" htmlFor="auth-email">
+              {t('profile.email')}
+            </label>
+            <input
+              id="auth-email"
+              type="email"
+              className="input"
+              value={email}
+              required
+              autoComplete="email"
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="tu@correo.com"
+            />
+          </div>
+
+          <div className="field">
+            <label className="field__label" htmlFor="auth-password">
+              {t('login.password')}
+            </label>
+            <input
+              id="auth-password"
+              type="password"
+              className="input"
+              value={password}
+              required
+              minLength={modo === 'registro' ? 8 : undefined}
+              autoComplete={modo === 'registro' ? 'new-password' : 'current-password'}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+            {modo === 'registro' && <p className="field__hint">{t('login.passwordHint')}</p>}
+          </div>
+
+          {error && (
+            <p className="login__error" role="alert">
+              <AlertCircle size={15} aria-hidden="true" />
+              {error}
+            </p>
+          )}
+
+          <button type="submit" className="btn btn--primary btn--block" disabled={enviando}>
+            {enviando ? t('login.working') : modo === 'registro' ? t('login.createAccount') : t('login.tabLogin')}
+            <ArrowRight size={16} aria-hidden="true" />
+          </button>
+        </form>
+
+        <div className="login__divider" aria-hidden="true">
+          <span>{t('login.or')}</span>
+        </div>
+
+        {/* ----------------------------------------------- otros metodos */}
         <div className="login__providers">
-          {PROVIDERS.map((provider) => {
-            const Icon = provider.icon
-            const active = pending?.type === 'provider' && pending.id === provider.id
-            return (
-              <button
-                key={provider.id}
-                type="button"
-                className="btn btn--provider"
-                aria-expanded={active}
-                onClick={() => requestProvider(provider)}
-              >
-                <Icon />
-                <span>{t(provider.label)}</span>
-                {active && <span className="login__badge">{t('login.pending')}</span>}
-              </button>
-            )
-          })}
+          <button
+            type="button"
+            className="btn btn--provider"
+            onClick={entrarConApple}
+            disabled={!proveedores.apple}
+          >
+            <AppleMusicIcon />
+            <span>{t('login.withApple')}</span>
+            {proveedores.apple ? <Check size={15} className="login__ok" /> : <span className="login__tag">{t('login.pending')}</span>}
+          </button>
 
           <button
             type="button"
-            className="btn btn--secondary btn--block"
-            onClick={() => {
-              setShowEmail((value) => !value)
-              setPending(null)
-            }}
-            aria-expanded={showEmail}
+            className="btn btn--provider"
+            onClick={() => pendienteDe('Google')}
+            disabled={!proveedores.google}
           >
             <Mail size={17} aria-hidden="true" />
-            {t('login.withEmail')}
+            <span>{t('login.withGoogle')}</span>
+            {proveedores.google ? <Check size={15} className="login__ok" /> : <span className="login__tag">{t('login.pending')}</span>}
+          </button>
+
+          <button
+            type="button"
+            className="btn btn--provider"
+            onClick={() => pendienteDe('Spotify')}
+            disabled={!proveedores.spotify}
+          >
+            <Mail size={17} aria-hidden="true" />
+            <span>{t('login.withSpotify')}</span>
+            {proveedores.spotify ? <Check size={15} className="login__ok" /> : <span className="login__tag">{t('login.pending')}</span>}
           </button>
         </div>
 
-        {showEmail && (
-          <form className="login__email stack stack--3" onSubmit={requestEmail}>
-            <div className="field">
-              <label className="field__label" htmlFor="login-email">
-                {t('login.emailTitle')}
-              </label>
-              <input
-                id="login-email"
-                type="email"
-                className="input"
-                placeholder={t('login.emailPlaceholder')}
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </div>
-            <button type="submit" className="btn btn--primary btn--block">
-              {t('login.submit')}
-              <ArrowRight size={16} aria-hidden="true" />
-            </button>
-          </form>
-        )}
-
-        {pending && (
-          <div className="login__pending" role="status">
-            <ShieldAlert size={16} aria-hidden="true" />
-            <p className="login__pending-text">
-              {pending.type === 'provider'
-                ? t('login.pendingProvider', { provider: t(`login.with_${pending.id}`) })
-                : t('login.pendingEmail', { email: pending.id || t('login.emailPlaceholder') })}
-            </p>
-            <div className="row row--wrap">
-              <button type="button" className="btn btn--secondary login__pending-action" onClick={closePending}>
-                {t('common.close')}
-              </button>
-              <button type="button" className="btn btn--ghost login__pending-action" onClick={enterDemo}>
-                {t('login.demoMode')}
-              </button>
-            </div>
+        {pendiente && (
+          <div className="login__notice login__notice--info" role="status">
+            <ShieldAlert size={15} aria-hidden="true" />
+            <span>{t(`login.pendiente_${pendiente}`)}</span>
           </div>
         )}
 
-        {!pending && (
-          <p className="login__notice">
-            <Info size={15} aria-hidden="true" />
-            {t('login.notReady')}
-          </p>
-        )}
+        <div className="login__divider" aria-hidden="true" />
 
-        <div className="login__divider" aria-hidden="true">
-          <span />
-        </div>
-
-        <button type="button" className="btn btn--ghost btn--block" onClick={enterDemo}>
+        <button type="button" className="btn btn--ghost btn--block" onClick={demo}>
           {t('login.demoMode')}
         </button>
 

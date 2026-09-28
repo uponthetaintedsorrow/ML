@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useMemo } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage.js'
+import { fetchMe, getToken, logout as logoutRemoto } from '../services/auth.js'
 
 const UserContext = createContext(null)
 
@@ -79,13 +80,44 @@ export function UserProvider({ children }) {
     setUser({ ...DEFAULT_USER, isAuthenticated: true })
   }, [setUser])
 
+  /**
+   * Al arrancar, si hay token de la API, se recupera la cuenta real del
+   * servidor. La copia en localStorage solo sirve para pintar la interfaz al
+   * instante (y para el modo demostracion, que no tiene token).
+   */
+  useEffect(() => {
+    if (!getToken()) return undefined
+    let vivo = true
+    fetchMe()
+      .then((cuenta) => {
+        if (!vivo || !cuenta) return
+        setUser((actual) => ({ ...(actual ?? {}), ...cuenta, isAuthenticated: true }))
+      })
+      .catch(() => {})
+    return () => {
+      vivo = false
+    }
+  }, [setUser])
+
   const signOut = useCallback(() => {
+    logoutRemoto() // descarta el token de sesion en el navegador
     setUser(null)
   }, [setUser])
 
   const updateProfile = useCallback(
     (changes) => {
       setUser((current) => (current ? { ...current, ...changes } : current))
+    },
+    [setUser],
+  )
+
+  /**
+   * Sesion real: la cuenta viene de la API (correo o Apple). El token ya se
+   * guarda en services/auth.js; aqui solo se refleja en el estado.
+   */
+  const adoptUser = useCallback(
+    (cuenta) => {
+      setUser({ ...(cuenta ?? {}), isAuthenticated: true })
     },
     [setUser],
   )
@@ -113,11 +145,12 @@ export function UserProvider({ children }) {
       isAuthenticated: Boolean(user),
       signInDemo,
       signOut,
+      adoptUser,
       updateProfile,
       setPhoto,
       removePhoto,
     }),
-    [user, signInDemo, signOut, updateProfile, setPhoto, removePhoto],
+    [user, signInDemo, signOut, adoptUser, updateProfile, setPhoto, removePhoto],
   )
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>

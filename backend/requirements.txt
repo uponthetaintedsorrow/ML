@@ -10,6 +10,11 @@
 fastapi>=0.115
 uvicorn[standard]>=0.30
 
+# "Sign in with Apple" (firma ES256 del client_secret).
+# No hacen falta para el acceso por correo, solo para Apple.
+cryptography>=42.0
+PyJWT>=2.8
+
 # Algoritmo de recomendación (mismo entorno que tu .venv)
 pandas>=2.2
 scikit-learn>=1.5

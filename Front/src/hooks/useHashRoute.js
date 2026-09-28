@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from 'react'
 
 function readHash() {
   if (typeof window === 'undefined') return '#/'
-  const raw = window.location.hash.replace(/^#/, '')
+  // Se ignoran los parametros: por ejemplo "#/?token=..." (retorno de Apple)
+  // sigue siendo la ruta principal.
+  const raw = window.location.hash.replace(/^#/, '').split('?')[0]
   return raw.startsWith('/') ? raw : '/'
 }
 

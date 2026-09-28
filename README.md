@@ -7,7 +7,8 @@ ML/
 ├── main.py                 Entrenamiento del modelo (NO se usa, NO se toca)
 ├── recomendador.py         Recomendador de prueba ORIGINAL (NO se toca)
 ├── backend/                API para la aplicación (archivos nuevos)
-│   ├── api.py              FastAPI: /songs, /recommend, /health
+│   ├── api.py              FastAPI: /songs, /recommend, /health, /auth/*
+│   ├── auth.py             Cuentas, contraseñas cifradas y sesiones
 │   ├── recomendador_app.py COPIA ADAPTADA del recomendador original
 │   ├── config.py           Configuración y conexión MySQL
 │   ├── requirements.txt
@@ -17,7 +18,9 @@ ML/
 │   ├── dev.html            Entrada para Vite
 │   └── src/                Código fuente
 ├── package.json            Atajos para arrancar el frontend
-├── netlify.toml            Configuración de despliegue
+├── netlify.toml            Despliegue del frontend
+├── render.yaml             Despliegue de la API en Render
+├── Dockerfile              Imagen de la API (+ frontend)
 ├── scripts/
 └── README.md
 ```
@@ -155,6 +158,8 @@ locales del frontend (`CORS_ORIGINS`).
 | `SIMILITUD_MINIMA` | `backend/.env` | `0.30` |
 | `CORS_ORIGINS` | `backend/.env` | `http://localhost:5173,http://127.0.0.1:5173` |
 | `CORS_ORIGIN_REGEX` | `backend/.env` | vacío (desactivado) |
+| `FRONTEND_URL` | `backend/.env` | `http://localhost:5173` |
+| `APPLE_*` | `backend/.env` | vacío (Apple inactivo) |
 
 ## Despliegue del frontend (Netlify)
 
@@ -234,30 +239,79 @@ gestionada (Aiven, PlanetScale, RDS...), tu `localhost` abierto a traves de un
 tunel, o ejecutar la API en el mismo servidor que la base de datos. **No se
 puede inventar este paso**: sin acceso a MySQL la API no tendra datos.
 
-## Autenticacion (Google, Spotify, Apple Music y correo)
+## Autenticacion (acceso con correo y Apple)
 
-Estado actual: la pantalla de acceso es **interfaz**. El unico flujo que
-funciona es "modo demostracion" (sesion local).
+**Ya funciona de verdad:**
 
-Lo que falta y por que no se puede resolver solo desde aqui:
+| Metodo | Estado |
+| --- | --- |
+| Correo + contrasena | **Operativo**: registro, inicio de sesion, sesion persistente y cierre de sesion. |
+| Apple Music | Implementado el flujo real de Apple; se activa al rellenar `APPLE_*` en `backend/.env`. |
+| Google | Preparado en el backend; pendiente de credenciales. |
+| Spotify | Preparado en el backend; pendiente de credenciales. |
+| Modo demostracion | Operativo (acceso local sin cuenta). |
 
-1. **Las credenciales las tienes que crear tu** en el panel de cada
-   proveedor. No se pueden inventar: un `client id` falso haria fallar el
-   login y dejaria la aplicacion en un estado que parece funcionar pero no
-   autentica a nadie.
-   - Google: <https://console.cloud.google.com> -> APIs and Services -> Credentials
-   - Spotify: <https://developer.spotify.com/dashboard>
-   - Apple: <https://developer.apple.com> -> Sign in with Apple (**requiere
-    developer de pago: 99 USD/ano**)
-   - Correo: las credenciales SMTP de tu proveedor de email
-2. **El secreto no puede ir en el frontend.** Todo lo que viaja al navegador
-   es publico. Por eso estan prepared en `backend/.env.example` y no en
-   `Front/.env`.
+Como funciona el acceso por correo:
 
-Con esas credenciales rellenadas, el trabajo que queda es implementar en
-`backend/api.py` el flujo OAuth (URL de autorizacion por proveedor + canje del
-`code` por token + sesion). Se puede hacer en cuanto tengas los `client id` y
-`secret`; dime y lo implemento.
+1. `POST /auth/registro` -> crea la cuenta y devuelve un token.
+2. `POST /auth/login` -> valida y devuelve un token.
+3. `GET /auth/me` -> devuelve la cuenta de la sesion (401 si el token caduca).
+4. El token se guarda en el navegador y se envia como `Authorization: Bearer`.
+
+Detalles importantes:
+
+* Las **contrasenas se cifran** con PBKDF2-HMAC-SHA256 (260 000 iteraciones y
+  salt aleatorio por usuario). No se guardan en claro.
+* El token va firmado con HMAC-SHA256 y caduca a los 30 dias. Se guarda en
+  `localStorage` porque el frontend (Netlify) y la API estan en dominios
+  distintos; si se sirvieran desde el mismo dominio, lo correcto seria una
+  cookie `httpOnly`.
+* Las cuentas viven en `backend/usuarios.json`, que esta en `.gitignore`.
+  **MySQL no se toca**: sigue siendo solo el catalogo de canciones.
+* `GET /auth/providers` dice que metodos estan realmente configurados, y el
+  frontend desactiva los que no (no se ofrecen botones que no funcionan).
+
+Endpoints de autenticacion:
+
+```text
+GET  /auth/providers
+POST /auth/registro      { email, password, displayName, username }
+POST /auth/login          { email, password }
+GET  /auth/me             (Authorization: Bearer <token>)
+GET  /auth/apple/start    -> { url } de autorizacion de Apple
+GET  /auth/apple/callback -> vuelve al frontend con #/?token=...
+```
+
+### Activar Apple Music
+
+1. <https://developer.apple.com> -> Sign in with Apple (**requiere developer de
+   pago: 99 USD/ano**).
+2. Anade el redirect URI: `https://TU-DOMINIO/api/auth/apple/callback`
+   (en local, `http://localhost:8000/auth/apple/callback`).
+3. En `backend/.env`:
+
+   ```bash
+   APPLE_CLIENT_ID=
+   APPLE_TEAM_ID=
+   APPLE_KEY_ID=
+   APPLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+   APPLE_REDIRECT_URI=http://localhost:8000/auth/apple/callback
+   FRONTEND_URL=http://localhost:5173
+   ```
+
+4. Reinicia la API: el boton de Apple se habilita solo (el frontend lo consulta
+   en `/auth/providers`).
+
+### Google y Spotify (para mas adelante)
+
+El backend ya lee `GOOGLE_CLIENT_ID/SECRET` y `SPOTIFY_CLIENT_ID/SECRET`
+(quedan en "Pendiente" en la interfaz). Cuando quieras activarlos, dime y
+completo el canje de `code` por token igual que hice con Apple. Las
+credenciales se crean en <https://console.cloud.google.com> y
+<https://developer.spotify.com/dashboard>.
+
+**Ningun secreto va en el frontend**: todo lo que se envia al navegador es
+publico, por eso viven solo en `backend/.env`.
 
 ## Base de datos
 
