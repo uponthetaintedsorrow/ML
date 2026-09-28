@@ -17,6 +17,7 @@ ML/
 │   ├── dev.html            Entrada para Vite
 │   └── src/                Código fuente
 ├── package.json            Atajos para arrancar el frontend
+├── netlify.toml            Configuración de despliegue
 ├── scripts/
 └── README.md
 ```
@@ -153,6 +154,110 @@ locales del frontend (`CORS_ORIGINS`).
 | `MYSQL_DATABASE` | `backend/.env` | `musica_epica` |
 | `SIMILITUD_MINIMA` | `backend/.env` | `0.30` |
 | `CORS_ORIGINS` | `backend/.env` | `http://localhost:5173,http://127.0.0.1:5173` |
+| `CORS_ORIGIN_REGEX` | `backend/.env` | vacío (desactivado) |
+
+## Despliegue del frontend (Netlify)
+
+`netlify.toml` ya viene con la configuración correcta:
+
+```toml
+[build]
+  command = "npm run build"
+  publish = "Front/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+```
+
+El build se ejecuta desde la **raíz** del repositorio. `npm run build` instala
+las dependencias de `Front/` si faltan y genera `Front/dist/`, que es la
+carpeta que Netlify publica (no `dist/`).
+
+Si lo configuras desde la UI en lugar del archivo:
+**Site configuration → Build & deploy → Build settings → Publish directory**
+→ `Front/dist`.
+
+### Dos cosas que hay que definir en Netlify
+
+1. **`VITE_API_URL`**: la URL de la API Python desplegada. Si no la defines,
+   el bundle usa `http://localhost:8000` y el sitio no encontrará datos
+   (la app lo avisa en pantalla). En Netlify:
+   *Site configuration → Environment variables → `VITE_API_URL`*.
+2. **CORS en la API**: el dominio publicado tiene que estar permitido. O lo
+   añades a `CORS_ORIGINS` en `backend/.env`, o activas la regex (sirve para
+   Netlify y sus deploy previews, que cambian de subdominio):
+
+   ```bash
+   CORS_ORIGIN_REGEX=https://.*\.netlify\.app
+   ```
+
+   Recarga la API después de cambiarla.
+
+## Publicar la API (para que Netlify siempre conecte)
+
+Motivo del fallo actual: la web esta publicada en Netlify, pero la API vive en
+`localhost:8000` de tu ordenador. En el navegador de un visitante,
+`http://localhost:8000` significa **su propio equipo**, no el tuyo, asi que
+nunca hay conexion. No es un fallo de la app: es que la API no es publica.
+
+La unica forma de que este "siempre conectada" es **publicar tambien la API**
+en un servidor accesible desde internet. El repositorio ya esta preparado:
+
+```bash
+# Construir la imagen (incluye el frontend, que la API sirve en el mismo puerto)
+docker build -t musica-epica .
+docker run --env-file backend/.env -p 8000:8000 musica-epica
+```
+
+Despliegue en un servicio con Docker (Render, Railway, Fly.io, un VPS...):
+
+1. Sube el repositorio y crea un servicio Docker.
+2. variables de entorno: copia de `backend/.env.example` (MySQL y credenciales).
+3. Puerto: el que indique el servicio (se lee de `PORT`).
+4. Dominio final, por ejemplo `https://api.tusitio.com`.
+
+Cuando la API este publicada:
+
+```bash
+# 1. En Netlify: Site configuration -> Environment variables
+VITE_API_URL=https://api.tusitio.com
+# 2. En backend/.env del servidor, permite el dominio del frontend
+CORS_ORIGIN_REGEX=https://.*\.netlify\.app
+# 3. Vuelve a desplegar en Netlify (VITE_API_URL se incrusta en el build)
+```
+
+### Requisito importante: MySQL
+
+La API necesita leer la base de datos `musica_epica`. Si MySQL esta solo en
+tu ordenador, la API remota tampoco podra verla. Opciones: base de datos
+gestionada (Aiven, PlanetScale, RDS...), tu `localhost` abierto a traves de un
+tunel, o ejecutar la API en el mismo servidor que la base de datos. **No se
+puede inventar este paso**: sin acceso a MySQL la API no tendra datos.
+
+## Autenticacion (Google, Spotify, Apple Music y correo)
+
+Estado actual: la pantalla de acceso es **interfaz**. El unico flujo que
+funciona es "modo demostracion" (sesion local).
+
+Lo que falta y por que no se puede resolver solo desde aqui:
+
+1. **Las credenciales las tienes que crear tu** en el panel de cada
+   proveedor. No se pueden inventar: un `client id` falso haria fallar el
+   login y dejaria la aplicacion en un estado que parece funcionar pero no
+   autentica a nadie.
+   - Google: <https://console.cloud.google.com> -> APIs and Services -> Credentials
+   - Spotify: <https://developer.spotify.com/dashboard>
+   - Apple: <https://developer.apple.com> -> Sign in with Apple (**requiere
+    developer de pago: 99 USD/ano**)
+   - Correo: las credenciales SMTP de tu proveedor de email
+2. **El secreto no puede ir en el frontend.** Todo lo que viaja al navegador
+   es publico. Por eso estan prepared en `backend/.env.example` y no en
+   `Front/.env`.
+
+Con esas credenciales rellenadas, el trabajo que queda es implementar en
+`backend/api.py` el flujo OAuth (URL de autorizacion por proveedor + canje del
+`code` por token + sesion). Se puede hacer en cuanto tengas los `client id` y
+`secret`; dime y lo implemento.
 
 ## Base de datos
 

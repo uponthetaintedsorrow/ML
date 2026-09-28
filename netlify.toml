@@ -1,0 +1,22 @@
+# Despliegue del frontend en Netlify
+#
+# Este archivo manda sobre la configuracion del panel de Netlify, asi que el
+# build se ejecuta SIEMPRE desde la raiz del repositorio (base = "").
+#
+#   command  : "npm run build"     -> construye el frontend (instala Front/ si falta)
+#   publish  : "Front/dist"       -> carpeta que Netlify publica (NO "dist")
+#
+# OJO: la API Python (backend/) NO se despliega aqui. Define VITE_API_URL en
+# Netlify (Site configuration -> Environment variables) apuntando a la API
+# desplegada; si no, la app buscara en http://localhost:8000 y no encontrara datos.
+# Ademas, anade el dominio del sitio a CORS_ORIGINS (o CORS_ORIGIN_REGEX) en
+# backend/.env, o el navegador bloqueara las peticiones.
+
+[build]
+  base = ""
+  command = "npm run build"
+  publish = "Front/dist"
+
+[build.environment]
+  # Vite 8 requiere Node ^20.19 || >=22.12
+  NODE_VERSION = "22"

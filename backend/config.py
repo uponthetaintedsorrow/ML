@@ -81,8 +81,13 @@ API_PORT = _int("API_PORT", 8000)
 # Orígenes permitidos para el frontend en desarrollo (no se usa "*").
 CORS_ORIGINS = _lista(
     "CORS_ORIGINS",
-    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173",
+    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173,http://localhost:5500,http://127.0.0.1:5500",
 )
+
+# Regex opcional de orígenes permitidos, para despliegues con dominios
+# variables (Netlify y sus deploy previews). Vacio = desactivado.
+# Ejemplo: CORS_ORIGIN_REGEX=https://.*\.netlify\.app
+CORS_ORIGIN_REGEX = os.environ.get("CORS_ORIGIN_REGEX", "").strip() or None
 
 LIMITE_BUSQUEDA = _int("LIMITE_BUSQUEDA", 20)
 CANTIDAD_MAXIMA = _int("CANTIDAD_MAXIMA", 20)

@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Database, Palette, Plug, Wallet } from 'lucide-react'
+import { AlertTriangle, Database, Palette, Plug, Wallet } from 'lucide-react'
 import { usePreferences } from '../context/PreferencesContext.jsx'
 import { checkApiHealth, describeError } from '../services/api.js'
-import { API_CONFIG } from '../services/config.js'
+import { API_CONFIG, API_PUBLICADA_SIN_URL } from '../services/config.js'
 import { CustomThemeEditor } from '../components/CustomThemeEditor.jsx'
 import { LanguageSelector } from '../components/LanguageSelector.jsx'
 import { ThemeSelector } from '../components/ThemeSelector.jsx'
@@ -87,6 +87,13 @@ export function Settings({ onNavigate, onOpenCustom }) {
         <p className="text-muted text-sm">
           {t('settings.apiUrl')}: <code className="api-url">{API_CONFIG.baseUrl}</code>
         </p>
+
+        {API_PUBLICADA_SIN_URL && (
+          <p className="notice notice--warning">
+            <AlertTriangle size={15} aria-hidden="true" />
+            {t('settings.apiDeployedHint')}
+          </p>
+        )}
 
         <div className="row row--wrap">
           <button type="button" className="btn btn--secondary" onClick={checkConnection} disabled={checking}>

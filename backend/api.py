@@ -35,6 +35,7 @@ try:  # uso como paquete (backend.api)
         API_PORT,
         CANTIDAD_MAXIMA,
         CANTIDAD_POR_DEFECTO,
+        CORS_ORIGIN_REGEX,
         CORS_ORIGINS,
         LIMITE_BUSQUEDA,
         MYSQL_DATABASE,
@@ -49,6 +50,7 @@ except ImportError:  # uso directo (uvicorn api:app --app-dir backend)
         API_PORT,
         CANTIDAD_MAXIMA,
         CANTIDAD_POR_DEFECTO,
+        CORS_ORIGIN_REGEX,
         CORS_ORIGINS,
         LIMITE_BUSQUEDA,
         MYSQL_DATABASE,
@@ -77,11 +79,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Solo se permiten los origenes del frontend local configurados en CORS_ORIGINS
-# (nunca "*", porque permitiria que cualquier web llamase a la API).
+# Solo se permiten los origenes configurados en CORS_ORIGINS (nunca "*", porque
+# permitiria que cualquier web llamase a la API). Si hay CORS_ORIGIN_REGEX, se
+# aceptan ademas los origenes que la cumplan (util para dominios de Netlify).
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
+    allow_origin_regex=CORS_ORIGIN_REGEX,
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type"],

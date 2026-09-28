@@ -1,13 +1,16 @@
-# Dependencias del backend de MUSICA EPICA (se instalan en el .venv del proyecto).
+# Dependencias del backend de MUSICA EPICA.
 #
-#   cd ~/Documentos/ML
-#   source .venv/bin/activate
+#   Entorno local (el .venv del proyecto ya las tiene instaladas):
 #   python -m pip install -r backend/requirements.txt
 #
-# Las que ya estaban en el .venv y hacen falta para el algoritmo
-# (pandas, scikit-learn, mysql-connector-python) no se repiten con version
-# fija para no forzar cambios en el entorno que ya funciona.
+# Las del algoritmo (pandas, scikit-learn, mysql-connector-python) tambien se
+# listan aqui porque un contenedor o un servidor nuevo no tiene el .venv.
 
 # API HTTP
 fastapi>=0.115
 uvicorn[standard]>=0.30
+
+# Algoritmo de recomendación (mismo entorno que tu .venv)
+pandas>=2.2
+scikit-learn>=1.5
+mysql-connector-python>=9.0

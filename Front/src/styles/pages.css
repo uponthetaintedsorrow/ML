@@ -55,6 +55,11 @@
   color: var(--color-danger);
 }
 
+.notice--warning {
+  background: color-mix(in srgb, var(--color-warning) 14%, transparent);
+  color: var(--color-text-soft);
+}
+
 .api-url {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--fs-xs);

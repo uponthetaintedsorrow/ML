@@ -1,4 +1,4 @@
-import { API_CONFIG, API_ENDPOINTS } from './config.js'
+import { API_CONFIG, API_ENDPOINTS, API_PUBLICADA_SIN_URL } from './config.js'
 
 /**
  * Unica capa de acceso a datos del frontend.
@@ -41,6 +41,15 @@ export function describeError(error, t, vars = {}) {
     case 'UNAVAILABLE':
       return { title: t('errors.apiUnavailableTitle'), description: t('errors.apiUnavailable') }
     case 'NETWORK_ERROR':
+      // Causa mas probable en un despliegue: la app publicada sigue apuntando
+      // a localhost, que en el navegador remoto no apunta a ningun sitio.
+      if (API_PUBLICADA_SIN_URL) {
+        return {
+          title: t('errors.deployedTitle'),
+          description: t('errors.deployed', { url: API_CONFIG.baseUrl }),
+          hint: t('errors.deployedHint'),
+        }
+      }
       return {
         title: t('errors.connectionTitle'),
         description: t('errors.connection', { url: API_CONFIG.baseUrl }),

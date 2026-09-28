@@ -76,6 +76,11 @@ export const es = {
       'Arranca la API en otra terminal con:  npm run api   (y comprueba http://localhost:8000/health)',
     connectionCors:
       'Si la API está arrancada y sigue fallando, añade este origen a CORS_ORIGINS en backend/.env.',
+    deployedTitle: 'La API no está configurada en el despliegue',
+    deployed:
+      'Esta página está publicada, pero VITE_API_URL apunta a {url}, que en el navegador significa "este ordenador".',
+    deployedHint:
+      'En Netlify: Site configuration → Environment variables → VITE_API_URL = la URL pública de tu API, y vuelve a desplegar.',
     timeoutTitle: 'La API tardó demasiado',
     timeout: 'La consulta ha superado el tiempo de espera.',
     apiUnavailableTitle: 'La base de datos no está disponible',
@@ -213,6 +218,8 @@ export const es = {
     apiDown: 'Sin conexión con la API',
     apiSongs: '{count} canciones en la base de datos',
     apiNone: 'canciones en la base de datos',
+    apiDeployedHint:
+      'Esta página está publicada, pero la API apunta a localhost. Define VITE_API_URL en Netlify con la URL pública de tu API.',
   },
 
   account_status: {
