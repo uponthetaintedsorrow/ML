@@ -10,7 +10,8 @@
     "dev:front": "node scripts/dev.mjs --solo-frontend",
     "build": "node scripts/run-frontend.mjs build",
     "preview": "node scripts/run-frontend.mjs preview",
-    "lint": "node scripts/run-frontend.mjs lint"
+    "lint": "node scripts/run-frontend.mjs lint",
+    "tunnel:api": "node scripts/tunnel-api.mjs"
   },
   "engines": {
     "node": ">=20.19"
